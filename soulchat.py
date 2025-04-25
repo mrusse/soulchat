@@ -76,8 +76,13 @@ def batch_send_new_files(new_files, client_type):
 
         send_email(email_subject, email_body)
 
+config_path = "/data/config.ini"
+
+if not os.path.exists(config_path):
+    raise FileNotFoundError("Missing config file at /data/config.ini")
+
 config = configparser.ConfigParser()
-config.read("config.ini")
+config.read(config_path)
 
 email = config["SMTP"]["email"]
 password = config["SMTP"]["app_password"]
@@ -87,7 +92,7 @@ recipient = config["SMTP"]["recipient"]
 use_ssl = config["SMTP"].getboolean("use_ssl", fallback=True)
 
 qt_log_dir = config["SoulseekQT"]["log_directory"]
-qt_json = "SoulseekQT.json"
+qt_json = "/data/SoulseekQT.json"
 qt_username = config["SoulseekQT"]["username"]
 
 while True:
