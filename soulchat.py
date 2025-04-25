@@ -99,6 +99,7 @@ config = configparser.ConfigParser()
 config.read(config_path)
 
 script_interval = int(config["General"].getint("script_interval", fallback=300))
+clients = [c.strip() for c in config.get("General", "clients").split(",")]
 
 email = config["SMTP"]["email"]
 password = config["SMTP"]["app_password"]
@@ -107,26 +108,30 @@ smtp_port = int(config["SMTP"]["smtp_port"])
 recipient = config["SMTP"]["recipient"]
 use_ssl = config["SMTP"].getboolean("use_ssl", fallback=True)
 
-qt_log_dir = config["SoulseekQT"]["log_directory"]
-qt_json = "/data/SoulseekQT.json"
-qt_username = config["SoulseekQT"]["username"]
-
 while True:
-    logging.info("Checking for new chats...")
+    for client in clients:
+        try:
+            log_dir = config[client]["log_directory"]
+            username = config[client]["username"]
+            json_file = f"/data/{client}.json"
+            logging.info(f"Checking for new {client} chats...")
 
-    load_json = os.path.exists(qt_json)
-    if not load_json:
-        logging.info(f"{qt_json} not found. Creating it now.")
+            load_json = os.path.exists(json_file)
+            if not load_json:
+                logging.info(f"{json_file} not found. Creating it now.")
 
-    new_files = get_new_logs(qt_log_dir, qt_json, qt_username)
-    if not new_files:
-        logging.info("No new chats found.")
-    else:
-        for file in new_files:
-            logging.info(f"New chat found: {os.path.basename(file)}")
+            new_files = get_new_logs(log_dir, json_file, username)
+            if not new_files:
+                logging.info(f"No new {client} chats found.")
+            else:
+                for file in new_files:
+                    logging.info(f"New {client} chat found: {os.path.basename(file)}")
 
-    if load_json and new_files:
-        batch_send_new_files(new_files, "SoulseekQT")
+            if load_json and new_files:
+                batch_send_new_files(new_files, client)
+
+        except Exception as e:
+            logging.error(f"Error processing chat logs for {client}: {e}")
 
     logging.info(f"Sleeping for {script_interval} seconds...")
     time.sleep(script_interval)
