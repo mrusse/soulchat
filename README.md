@@ -20,7 +20,10 @@ services:
     restart: unless-stopped
     network_mode: bridge
     volumes:
+      # Select where you are storing your config file.
+      # Leave "/data" since thats where the script expects the config file to be.
       - /mnt/user/appdata/soulchat:/data
+      # Log file locations (you only need to set the paths for the clients you use).
       - /path/to/your/SoulseekQT/chat/logs:/SoulseekQT_Logs
       - /path/to/your/Nicotine+/chat/logs:/Nicotine+_Logs
     environment:
