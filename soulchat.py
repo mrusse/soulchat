@@ -98,6 +98,8 @@ if not os.path.exists(config_path):
 config = configparser.ConfigParser()
 config.read(config_path)
 
+script_interval = int(config["General"].getint("script_interval", fallback=300))
+
 email = config["SMTP"]["email"]
 password = config["SMTP"]["app_password"]
 smtp_server = config["SMTP"]["smtp_server"]
@@ -126,5 +128,5 @@ while True:
     if load_json and new_files:
         batch_send_new_files(new_files, "SoulseekQT")
 
-    logging.info("Sleeping for 5 minutes...")
-    time.sleep(300)
+    logging.info(f"Sleeping for {script_interval} seconds...")
+    time.sleep(script_interval)
