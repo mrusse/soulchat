@@ -22,7 +22,7 @@ You will also have to provide your SoulseekQT and/or Nicotine+ log file location
 ### Usual log folder locations:
 ```
 SoulseekQT (Windows): %localappdata%\SoulseekQt\Soulseek Chat Logs\Users
-SoulseekQT (linux): /home/<user>/Soulseek Chat Logs/Users
+SoulseekQT (Linux): /home/<user>/Soulseek Chat Logs/Users
 Nicotine+ (Windows): %appdata%\nicotine\logs\private
 Nicotine+ (Linux): /home/<user>/.local/share/nicotine/logs/private
 ```
