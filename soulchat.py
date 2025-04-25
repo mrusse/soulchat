@@ -2,9 +2,15 @@ import os
 import ssl
 import time
 import json
+import logging
 import smtplib
 import configparser
 from email.message import EmailMessage
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
 
 def send_email(subject, body):
     msg = EmailMessage()
@@ -23,9 +29,9 @@ def send_email(subject, body):
                 smtp.starttls(context=ssl.create_default_context())
                 smtp.login(email, password)
                 smtp.send_message(msg)
-        print("Email sent successfully!")
+        logging.info("Email sent successfully!")
     except Exception as e:
-        print(f"Failed to send email: {e}")    
+        logging.error(f"Failed to send email: {e}")    
 
 def get_new_logs(log_dir, json_file, username):
     username = f"[{username}]"
@@ -52,7 +58,7 @@ def get_new_logs(log_dir, json_file, username):
                     if username not in contents:
                         new_files.append(full_path)
             except Exception as e:
-                print(f"Could not read {f}: {e}")
+                logging.warning(f"Could not read {f}: {e}")
 
     with open(json_file, "w") as f:
         json.dump(current_files, f, indent=2)
@@ -60,21 +66,29 @@ def get_new_logs(log_dir, json_file, username):
     return new_files
 
 def get_username(file, client_type):
-    if client_type == "SoulseekQT":
-        return open(file, "r", encoding="utf-8").readline().split("]")[1][1:]
-    if client_type == "Nicotine+":
-        return open(file, "r", encoding="utf-8").readline().split("[")[1].split("]")[0]
+    try:
+        with open(file, "r", encoding="utf-8") as f:
+            line = f.readline()
+            if client_type == "SoulseekQT":
+                return line.split("]")[1][1:]
+            elif client_type == "Nicotine+":
+                return line.split("[")[1].split("]")[0]
+    except Exception as e:
+        logging.warning(f"Could not extract username from {file}: {e}")
+        return "Unknown"
 
 def batch_send_new_files(new_files, client_type):
-    for f in new_files:
+    for file in new_files:
         email_body = ""
-        username = get_username(f, client_type)
+        username = get_username(file, client_type)
         email_subject = f"New {client_type} Message From: {username}"
 
-        with open(f, "r", encoding="utf-8") as f:
-            email_body = f.read()
-
-        send_email(email_subject, email_body)
+        try:
+            with open(file, "r", encoding="utf-8") as f:
+                email_body = f.read()
+            send_email(email_subject, email_body)
+        except Exception as e:
+            logging.error(f"Failed to read or send {file}: {e}")
 
 config_path = "/data/config.ini"
 
@@ -96,21 +110,21 @@ qt_json = "/data/SoulseekQT.json"
 qt_username = config["SoulseekQT"]["username"]
 
 while True:
-    print("Loading JSON...")
+    logging.info("Checking for new chats...")
 
-    load_json = True
-    if not os.path.exists(qt_json):
-        print(f"{qt_json} not found. Building file now.")
-        load_json = False
+    load_json = os.path.exists(qt_json)
+    if not load_json:
+        logging.info(f"{qt_json} not found. Creating it now.")
 
     new_files = get_new_logs(qt_log_dir, qt_json, qt_username)
     if not new_files:
-        print("No new chats found.")
-    for file in new_files:
-        print(f"New chat found: {os.path.basename(file)}")
+        logging.info("No new chats found.")
+    else:
+        for file in new_files:
+            logging.info(f"New chat found: {os.path.basename(file)}")
 
-    if load_json:
+    if load_json and new_files:
         batch_send_new_files(new_files, "SoulseekQT")
 
-    print("Sleeping for 5 minutes...")
+    logging.info("Sleeping for 5 minutes...")
     time.sleep(300)
