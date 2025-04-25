@@ -1,5 +1,9 @@
-# Soulchat
-Small tool to notify you of Soulseek private chats from the SoulseekQT or Nicotine+ clients.
+![banner](https://raw.githubusercontent.com/mrusse/soulchat/refs/heads/main/resources/banner.png)
+
+<h1 align="center">Soulchat</h1>
+<p align="center">
+  A Python script to notify you of private chats from SoulseekQT or Nicotine+.
+</p>
 
 # 04-24-2025: 
 Pretty early WIP right now only works with the QT client and has basic functionality.
