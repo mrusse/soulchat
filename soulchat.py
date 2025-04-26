@@ -117,13 +117,21 @@ def batch_send_new_files(new_files, client_type):
         except Exception as e:
             logging.error(f"Failed to read or send {file}: {e}")
 
-config_path = "/data/config.ini"
+def is_docker():
+    return os.getenv('IN_DOCKER') is not None
 
-if not os.path.exists(os.getcwd() + config_path):
-    raise FileNotFoundError(f"Missing config file at {os.getcwd()}{config_path}")
+if is_docker():
+    data_path = "/data/"
+else:
+    data_path = os.getcwd() + "/data/"
+
+config_path = f"{data_path}config.ini"
+
+if not os.path.exists(config_path):
+    raise FileNotFoundError(f"Missing config file at {config_path}")
 
 config = configparser.ConfigParser()
-config.read(os.getcwd() + config_path)
+config.read(config_path)
 
 script_interval = int(config["General"].getint("script_interval", fallback=300))
 clients = [c.strip() for c in config.get("General", "clients").split(",")]
@@ -140,7 +148,7 @@ while True:
         try:
             log_dir = config[client]["log_directory"]
             username = config[client]["username"]
-            json_file = f"{os.getcwd()}/data/{client}.json"
+            json_file = f"{data_path}{client}.json"
             logging.info(f"Checking for new {client} chats...")
 
             load_json = os.path.exists(json_file)
