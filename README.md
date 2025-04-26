@@ -22,7 +22,7 @@ You will also have to provide your SoulseekQT and/or Nicotine+ log file location
 ### Usual log folder locations:
 ```
 SoulseekQT (Windows): %localappdata%\SoulseekQt\Soulseek Chat Logs\Users
-SoulseekQT (linux): unknown
+SoulseekQT (Linux): /home/<user>/Soulseek Chat Logs/Users
 Nicotine+ (Windows): %appdata%\nicotine\logs\private
 Nicotine+ (Linux): /home/<user>/.local/share/nicotine/logs/private
 ```
@@ -40,8 +40,8 @@ services:
     restart: unless-stopped
     network_mode: bridge
     volumes:
-      # Select where you are storing your config file.
-      # Leave "/data" since thats where the script expects the config file to be.
+      # Select where you are storing your config file. Leave it mounted to "/data" since that's
+      # where the script expects the config file to be inside the container.
       - /mnt/user/appdata/soulchat:/data
       # Log file locations (you only need to set the paths for the clients you use).
       - /path/to/your/SoulseekQT/chat/logs:/SoulseekQT_Logs
