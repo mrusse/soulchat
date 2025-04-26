@@ -10,6 +10,11 @@ Soulchat monitors your SoulseekQT and/or your Nicotine+ log directories and noti
 Current functionality is limited to sending notification emails when a new user that you do not have chat
 history with messages you.
 
+### Example notifications:
+![SoulseekQT_Example_Email](https://github.com/user-attachments/assets/06ccfedc-fcf8-455d-832e-c24c3a8d8a09)
+
+![Nicotine+_Example_Email](https://github.com/user-attachments/assets/f83eecac-a7e1-425d-945d-df1e20a2841d)
+
 # Setup
 First clone the repo or install the docker image. Docker image available at [mrusse08/soulchat](https://hub.docker.com/repository/docker/mrusse08/soulchat/general).
 Then place your config file in the `/data` directory (relative to soulchat.py). Example config available [here](https://github.com/mrusse/soulchat/blob/main/config.ini).
