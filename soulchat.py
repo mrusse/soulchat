@@ -5,19 +5,45 @@ import json
 import logging
 import smtplib
 import configparser
-from email.message import EmailMessage
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s"
 )
 
-def send_email(subject, body):
-    msg = EmailMessage()
+def send_email(subject, body, client_type):
+    sc_footer = os.path.join(os.getcwd(), "resources", "banner.png")
+    logo_footer = os.path.join(os.getcwd(), "resources", f"{client}.png")
+    html_template_path = os.path.join(os.getcwd(), "resources", "email_template.html")
+
+    msg = MIMEMultipart("related")
     msg["Subject"] = subject
     msg["From"] = email
     msg["To"] = recipient
-    msg.set_content(body)
+
+    with open(html_template_path, "r", encoding="utf-8") as f:
+        html = f.read()
+    html = html.replace("\n", "").replace("\t", "").replace("\r", "")
+    html = html.replace("{{ body }}", body)
+
+    msg.attach(MIMEText(html, "html"))
+
+    if os.path.exists(sc_footer):
+        with open(sc_footer, "rb") as img:
+            img_data = img.read()
+        image = MIMEImage(img_data)
+        image.add_header('Content-ID', '<sc_footer>')
+        msg.attach(image)
+
+    if os.path.exists(logo_footer):
+        with open(logo_footer, "rb") as img:
+            img_data = img.read()
+        image = MIMEImage(img_data)
+        image.add_header('Content-ID', '<logo_footer>')
+        msg.attach(image)
 
     try:
         if use_ssl:
@@ -31,7 +57,8 @@ def send_email(subject, body):
                 smtp.send_message(msg)
         logging.info("Email sent successfully!")
     except Exception as e:
-        logging.error(f"Failed to send email: {e}")    
+        logging.error(f"Failed to send email: {e}")
+
 
 def get_new_logs(log_dir, json_file, username):
     username = f"[{username}]"
@@ -86,17 +113,17 @@ def batch_send_new_files(new_files, client_type):
         try:
             with open(file, "r", encoding="utf-8") as f:
                 email_body = f.read()
-            send_email(email_subject, email_body)
+            send_email(email_subject, email_body, client_type)
         except Exception as e:
             logging.error(f"Failed to read or send {file}: {e}")
 
 config_path = "/data/config.ini"
 
-if not os.path.exists(config_path):
-    raise FileNotFoundError("Missing config file at /data/config.ini")
+if not os.path.exists(os.getcwd() + config_path):
+    raise FileNotFoundError(f"Missing config file at {os.getcwd()}{config_path}")
 
 config = configparser.ConfigParser()
-config.read(config_path)
+config.read(os.getcwd() + config_path)
 
 script_interval = int(config["General"].getint("script_interval", fallback=300))
 clients = [c.strip() for c in config.get("General", "clients").split(",")]
@@ -113,7 +140,7 @@ while True:
         try:
             log_dir = config[client]["log_directory"]
             username = config[client]["username"]
-            json_file = f"/data/{client}.json"
+            json_file = f"{os.getcwd()}/data/{client}.json"
             logging.info(f"Checking for new {client} chats...")
 
             load_json = os.path.exists(json_file)
